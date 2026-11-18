@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: srujana-studio-mobile
+    runtime: python
+    plan: free
+    buildCommand: pip install --no-cache-dir -r backend/requirements.txt
+    startCommand: uvicorn main:app --app-dir backend --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: CLOUD_DEPLOYMENT
+        value: "1"
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: STUDIO_PASSWORD
+        sync: false
+      - key: MAX_UPLOAD_MB
+        value: "25"
+      - key: CLOUD_MAX_GRID
+        value: "64"
+      - key: TT_GRID
+        value: "64"
+      - key: TT_WIDTH
+        value: "320"
+      - key: TT_VIEWS
+        value: "16"
+      - key: TT_MAX_FRAMES
+        value: "80"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: OMP_NUM_THREADS
+        value: "1"

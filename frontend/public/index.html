@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Srujana 3D">
+<title>Srujana - Video to 3D Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header>
+  <div class="logo-group">
+    <div class="logo-icon">3D</div>
+    <div>
+      <h1>Srujana Studio</h1>
+      <p>Interactive Video-to-3D Conversion Platform</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>
+      <svg style="width:20px;height:20px;color:var(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+      Model Generator & Controls
+    </h2>
+
+    <div class="form-group">
+      <label>1. Video File Upload</label>
+      <div class="drop-zone" id="dropZone">
+        <div class="static-icon">
+          <svg style="width:36px;height:36px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        </div>
+        <p>Drag & drop your MP4/MOV video here or <span>Browse</span></p>
+        <input id="file" type="file" accept="video/mp4,video/quicktime,video/x-m4v,video/webm,video/*">
+      </div>
+      <div id="videoPreviewBox">
+        <video id="videoPreview" controls muted></video>
+      </div>
+      <div id="fileDetails"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="mode">2. Capture Style</label>
+      <select id="mode">
+        <option value="turntable">Turntable Mode (Object spins, camera still - Fast & No GPU)</option>
+        <option value="auto">Orbit Mode (Camera walks around object - Auto GPU/CPU)</option>
+        <option value="cpu">Orbit CPU Mode (Point cloud generation, no GPU needed)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="qualityPreset">3. Reconstruction Quality</label>
+      <select id="qualityPreset">
+        <option value="fast">Fast — 96-grid turntable</option>
+        <option value="balanced" selected>Balanced — 160-grid turntable</option>
+        <option value="high">High — 192-grid turntable (slower)</option>
+      </select>
+      <label class="check-line"><input id="removeNoise" type="checkbox" checked> Remove disconnected voxel noise (turntable)</label>
+      <p class="small-note">Quality presets currently change turntable voxel resolution. Orbit reconstruction retains its existing settings.</p>
+      <div id="videoAdvice" class="tip" hidden></div>
+    </div>
+
+    <div id="cloudNotice" class="cloud-notice" hidden>Mobile cloud mode: use a short MP4 of a rotating object with a still camera. Free hosting supports one reconstruction at a time, with limited resolution. Your uploaded videos are temporary.</div>
+    <button id="go" class="primary-btn">Create 3D Model</button>
+
+    <div class="addon-panel" id="addonPanel" style="display:none;">
+      <h4><span>✨ 3D Customizer Pro</span><span id="pointCountBadge" class="small-note">Active</span></h4>
+      <div class="slider-row"><label for="renderStyle">Display</label>
+        <select id="renderStyle"><option value="points">Sharp points</option><option value="mesh">Solid surface</option><option value="wireframe">Wireframe</option></select></div>
+      <div id="meshNote" class="small-note">Solid/wireframe modes require reconstructed triangle faces.</div>
+      <div class="slider-row"><label for="pointSizeRange">Point Size</label><input type="range" id="pointSizeRange" min="1" max="12" step="0.5" value="3"><output id="pointSizeValue">3px</output></div>
+      <label class="check-line"><input type="checkbox" id="adaptiveClarity" checked> Adaptive clarity — cap oversized dots</label>
+      <div class="slider-row"><label for="opacityRange">Opacity</label><input id="opacityRange" type="range" min="0.2" max="1" step="0.05" value="1"><output id="opacityValue">100%</output></div>
+      <div class="slider-row"><label for="brightnessRange">Brightness</label><input id="brightnessRange" type="range" min="0.5" max="1.5" step="0.05" value="1"><output id="brightnessValue">100%</output></div>
+      <div class="slider-row"><label for="finishRange">Surface Finish</label><input id="finishRange" type="range" min="0" max="100" step="5" value="35"><output id="finishValue">35%</output></div>
+      <h4 class="subheading">Model Transform (preview only)</h4>
+      <div class="slider-row"><label for="rotateX">Rotate X</label><input id="rotateX" type="range" min="-180" max="180" value="0"><output id="rotateXValue">0°</output></div>
+      <div class="slider-row"><label for="rotateY">Rotate Y</label><input id="rotateY" type="range" min="-180" max="180" value="0"><output id="rotateYValue">0°</output></div>
+      <div class="slider-row"><label for="rotateZ">Rotate Z</label><input id="rotateZ" type="range" min="-180" max="180" value="0"><output id="rotateZValue">0°</output></div>
+      <div class="slider-row"><label for="scaleRange">Scale</label><input id="scaleRange" type="range" min="0.5" max="2" step="0.05" value="1"><output id="scaleValue">1.00×</output></div>
+      <div class="toolbar"><button id="resetAppearance" type="button">↺ Reset</button><button id="savePreset" type="button">Save preset</button></div>
+      <p class="small-note">Viewer customizations don't change exported model geometry. Surface exports are made from the backend's reconstructed mesh.</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step" id="step-queued">
+        <div class="step-label">
+          <span>1. Upload Video</span>
+          <span class="pct" id="upload-pct">0%</span>
+        </div>
+        <div class="progress-mini"><div class="progress-fill" id="upload-fill"></div></div>
+        <div class="step-meta" id="upload-meta">Waiting to upload...</div>
+      </div>
+
+      <div class="step" id="step-filtering">
+        <div class="step-label">
+          <span>2. Frame Processing</span>
+          <span class="pct" id="filter-pct"></span>
+        </div>
+        <div class="progress-mini"><div class="progress-fill" id="filter-fill"></div></div>
+        <div class="step-meta" id="filter-meta">Selecting sharp frames...</div>
+      </div>
+
+      <div class="step" id="step-reconstructing">
+        <div class="step-label">
+          <span>3. 3D Reconstruction</span>
+          <span class="pct" id="recon-pct"></span>
+        </div>
+        <div class="progress-mini"><div class="progress-fill" id="recon-fill"></div></div>
+        <div class="step-meta" id="recon-meta">Building Gaussian / Point cloud...</div>
+      </div>
+
+      <div class="step" id="step-done">
+        <div class="step-label">
+          <span>4. Ready to View</span>
+        </div>
+        <div class="step-meta">3D model generated successfully</div>
+      </div>
+    </div>
+
+    <div id="msg"></div>
+    <div id="stats"></div>
+    <div id="qualityWarnings" class="tip" hidden></div>
+    <div class="history-panel"><label for="recentJobs">Previous jobs (on this computer)</label><div class="history-row"><select id="recentJobs"><option value="">No saved jobs</option></select><button id="openJob" type="button">Open</button></div></div>
+
+    <div class="download-section" id="dl" hidden>
+      <div class="download-menu" id="downloadMenu"><button type="button" class="btn-dl" id="downloadToggle" aria-expanded="false">⬇ Download 3D Model ▾</button><div class="download-options" id="downloadOptions" hidden><a id="dlPly" download="model.ply">.ply — Original points/splats</a><a id="dlMeshPly" download="surface.ply" hidden>.ply — Surface mesh</a><div class="export-preference"><label for="downloadGeometry">OBJ / Blender geometry</label><select id="downloadGeometry"><option value="original">Original vertices</option><option value="surface">Triangle surface</option></select></div><a id="dlObj" download="model.obj">.obj — Geometry</a><a id="dlBlend" download="model.blend">.blend — Blender project</a><a id="dlGlb" download="surface.glb" hidden>.glb — Vertex-color mesh</a><a id="dlStl" download="surface.stl" hidden>.stl — Mesh (no colors)</a></div></div><a class="btn-dl" id="dlFrames" hidden download="frames.zip">⬇ Download frames (.zip)</a>
+      <button class="primary-btn" id="snapshotBtn" style="width:auto; padding:0.75rem 1rem;" title="Capture Snapshot">📷</button>
+    </div>
+  </section>
+
+  <section id="viewer">
+    <div id="placeholder">
+      <div class="spinner" id="mainSpinner"></div>
+      <div class="static-icon" id="staticIcon">
+        <svg style="width:64px;height:64px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"></path></svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size: 1.1rem; color: var(--text);">3D Interactive Viewer</h3>
+        <p style="margin:6px 0 0; font-size: 0.875rem;">Upload a video on the left to render your model</p>
+      </div>
+    </div>
+
+    <div class="top-controls" id="viewer-info" style="display:none">
+      <span class="badge" id="model-type-badge">Splat</span>
+    </div>
+
+    <div id="viewerStats" class="viewer-stats" hidden></div>
+    <video id="compareVideo" class="compare-video" controls muted playsinline hidden></video>
+    <div class="viewer-controls" id="viewer-ui" style="display:none">
+      <button class="control-btn" id="zoomIn" title="Zoom In (+)">+</button>
+      <button class="control-btn" id="zoomOut" title="Zoom Out (−)">−</button>
+      <button class="control-btn" id="resetCam" title="Reset View (R)">⟲</button>
+      <button class="control-btn" id="autoRotate" title="Toggle Auto Rotate (A)">↻</button>
+      <button class="control-btn" id="compareBtn" title="Compare with source video">▣</button>
+      <button class="control-btn" id="toggleBg" title="Toggle Canvas Theme (Dark/Light)">🌓</button>
+      <button class="control-btn" id="fullScreen" title="Fullscreen">⛶</button>
+    </div>
+  </section>
+</main>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
